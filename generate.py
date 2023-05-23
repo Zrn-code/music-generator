@@ -73,21 +73,6 @@ def prepare_sequences(notes, pitchnames, n_vocab):
 	return (network_input, normalized_input)
 
 
-def create_network(n_vocab_notes, n_vocab_offsets, n_vocab_durations):
-    input_size = 1
-    hidden_size = 256
-    output_size_notes = n_vocab_notes
-    output_size_offsets = n_vocab_offsets
-    output_size_durations = n_vocab_durations
-
-    model_notes = MusicModel(input_size, hidden_size, output_size_notes)
-    model_offsets = MusicModel(input_size, hidden_size, output_size_offsets)
-    model_durations = MusicModel(input_size, hidden_size, output_size_durations)
-
-    model = CombinedModel(model_notes, model_offsets, model_durations)
-    model.load_state_dict(torch.load('model-0.pt'))
-    return model
-
 class CombinedModel(nn.Module):
     def __init__(self, model_notes, model_offsets, model_durations):
         super(CombinedModel, self).__init__()
@@ -106,13 +91,28 @@ class MusicModel(nn.Module):
         super(MusicModel, self).__init__()
         self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True)
         self.dropout = nn.Dropout(0.2)
-        self.fc = nn.Linear(hidden_size, output_size)
+        self.linear = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
         out, _ = self.lstm(x)
         out = self.dropout(out)
-        out = self.fc(out)
+        out = self.linear(out)  
         return out
+    
+def create_network(n_vocab_notes, n_vocab_offsets, n_vocab_durations):
+    input_size = 1
+    hidden_size = 256
+    output_size_notes = n_vocab_notes
+    output_size_offsets = n_vocab_offsets
+    output_size_durations = n_vocab_durations
+
+    model_notes = MusicModel(input_size, hidden_size, output_size_notes)
+    model_offsets = MusicModel(input_size, hidden_size, output_size_offsets)
+    model_durations = MusicModel(input_size, hidden_size, output_size_durations)
+
+    model = CombinedModel(model_notes, model_offsets, model_durations)
+    model.load_state_dict(torch.load('model-9.pt'))
+    return model
 
 
 def generate_notes(model, network_input_notes, network_input_offsets, network_input_durations, notenames, offsetnames, durationames, n_vocab_notes, n_vocab_offsets, n_vocab_durations):
@@ -130,7 +130,7 @@ def generate_notes(model, network_input_notes, network_input_offsets, network_in
     pattern3 = torch.tensor(network_input_durations[start3])
     prediction_output = []
 
-    for note_index in range(400):
+    for note_index in range(100):
         note_prediction_input = pattern.unsqueeze(0).unsqueeze(2)
         note_prediction_input = note_prediction_input / float(n_vocab_notes)
 
