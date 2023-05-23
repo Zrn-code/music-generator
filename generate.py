@@ -85,7 +85,7 @@ def create_network(n_vocab_notes, n_vocab_offsets, n_vocab_durations):
     model_durations = MusicModel(input_size, hidden_size, output_size_durations)
 
     model = CombinedModel(model_notes, model_offsets, model_durations)
-    model.load_state_dict(torch.load('model-49.pt'))
+    model.load_state_dict(torch.load('model-0.pt'))
     return model
 
 class CombinedModel(nn.Module):
@@ -132,7 +132,6 @@ def generate_notes(model, network_input_notes, network_input_offsets, network_in
 
     for note_index in range(400):
         note_prediction_input = pattern.unsqueeze(0).unsqueeze(2)
-        predictedNote = note_prediction_input[-1][-1][-1].item()
         note_prediction_input = note_prediction_input / float(n_vocab_notes)
 
         offset_prediction_input = pattern2.unsqueeze(0).unsqueeze(2)

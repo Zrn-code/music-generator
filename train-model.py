@@ -6,7 +6,23 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import Dataset, DataLoader
+import argparse
 from music21 import converter, instrument, note, chord
+
+def get_argument():
+    # do not modify
+    opt = argparse.ArgumentParser()
+    opt.add_argument("-g","--get_note",
+                     type=int,
+                     default=1,
+                     help="whether preprocessing, 0 means no and 1 means yes")
+    opt.add_argument("-e","--epoch",
+                     type=int,
+                     default=50,
+                     help="The number of epoch")
+
+    config = vars(opt.parse_args()) 
+    return config
 
 class MusicDataset(Dataset):
     def __init__(self, notes, n_vocab):
@@ -35,57 +51,71 @@ class MusicDataset(Dataset):
 
         network_input = torch.tensor(network_input).reshape(n_patterns, self.sequence_length, 1).float()
         network_input = network_input / float(n_vocab)
-        network_output = np.eye(n_vocab)[network_output]
+        
+        # One-hot encode the network_output
+        network_output = torch.tensor(network_output).long()
+        network_output = network_output.unsqueeze(1)
+        network_output = nn.functional.one_hot(network_output, num_classes=n_vocab).float()
 
-        return network_input, network_output    
+        return network_input, network_output
     
-def get_notes():
+def get_notes(preprocess):
     """ Get all the notes and chords from the midi files in the ./midi_songs directory """
     notes = []
     offsets = []
     durations = []
-    
-    for file in glob.glob("classical-piano-type0/*.mid"):
-        midi = converter.parse(file)
+    if preprocess == 1:
+        for file in glob.glob("classical-piano-type0/*.mid"):
+            midi = converter.parse(file)
 
-        #print("Parsing %s" % file)
+            print("Parsing %s" % file)
 
-        notes_to_parse = None
+            notes_to_parse = None
 
-        try: # file has instrument parts
-            s2 = instrument.partitionByInstrument(midi)
-            notes_to_parse = s2.parts[0].recurse() 
-        except: # file has notes in a flat structure
-            notes_to_parse = midi.flat.notes
+            try: # file has instrument parts
+                s2 = instrument.partitionByInstrument(midi)
+                notes_to_parse = s2.parts[0].recurse() 
+            except: # file has notes in a flat structure
+                notes_to_parse = midi.flat.notes
 
-        offsetBase = 0
-        for element in notes_to_parse:
-            isNoteOrChord = False
-            
-            if isinstance(element, note.Note):
-                notes.append(str(element.pitch))
-                isNoteOrChord = True
-            elif isinstance(element, chord.Chord):
-                notes.append('.'.join(str(n) for n in element.normalOrder))
-                isNoteOrChord = True
-
-            if isNoteOrChord:
-                offsets.append(str(element.offset - offsetBase))
-                durations.append(str(element.duration.quarterLength))
+            offsetBase = 0
+            for element in notes_to_parse:
                 isNoteOrChord = False
-                offsetBase = element.offset
+                
+                if isinstance(element, note.Note):
+                    notes.append(str(element.pitch))
+                    isNoteOrChord = True
+                elif isinstance(element, chord.Chord):
+                    notes.append('.'.join(str(n) for n in element.normalOrder))
+                    isNoteOrChord = True
 
-    with open('data/notes', 'wb') as filepath:
-        pickle.dump(notes, filepath)
+                if isNoteOrChord:
+                    offsets.append(str(element.offset - offsetBase))
+                    durations.append(str(element.duration.quarterLength))
+                    isNoteOrChord = False
+                    offsetBase = element.offset
 
-    with open('data/durations', 'wb') as filepath:
-        pickle.dump(durations, filepath)
+        with open('data/notes', 'wb') as filepath:
+            pickle.dump(notes, filepath)
 
-    with open('data/offsets', 'wb') as filepath:
-        pickle.dump(offsets, filepath)
+        with open('data/durations', 'wb') as filepath:
+            pickle.dump(durations, filepath)
 
-    return notes, offsets, durations
+        with open('data/offsets', 'wb') as filepath:
+            pickle.dump(offsets, filepath)
 
+        return notes, offsets, durations
+    else:
+        with open('data/notes', 'rb') as filepath:
+            notes = pickle.load(filepath)
+
+        with open('data/durations', 'rb') as filepath:
+            durations = pickle.load(filepath)
+
+        with open('data/offsets', 'rb') as filepath:
+            offsets = pickle.load(filepath)
+
+        return notes, offsets, durations
 class CombinedModel(nn.Module):
     def __init__(self, model_notes, model_offsets, model_durations):
         super(CombinedModel, self).__init__()
@@ -104,14 +134,14 @@ class MusicModel(nn.Module):
         super(MusicModel, self).__init__()
         self.lstm = nn.LSTM(input_size, hidden_size, batch_first=True)
         self.dropout = nn.Dropout(0.2)
-        self.fc = nn.Linear(hidden_size, output_size)
+        self.linear = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
         out, _ = self.lstm(x)
         out = self.dropout(out)
-        out = self.fc(out)
+        out = self.linear(out)  
         return out
-
+    
 def create_network(n_vocab_notes, n_vocab_offsets, n_vocab_durations):
     input_size = 1
     hidden_size = 256
@@ -127,49 +157,46 @@ def create_network(n_vocab_notes, n_vocab_offsets, n_vocab_durations):
     #model.load_state_dict(torch.load('model-8.pt'))
     return model
 
-def train(model, dataloader_notes, dataloader_offsets, dataloader_durations):
+def train(model,epoch, dataloader_notes, dataloader_offsets, dataloader_durations, n_vocab_notes, n_vocab_offsets, n_vocab_durations):
     """ train the neural network """
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.parameters())
+   
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    model.train()
+    criterion = nn.CrossEntropyLoss().to(device)
+    optimizer = optim.Adam(model.parameters())
     model.to(device)
-
-    for epoch in range(50):
+    
+    for epoch in range(epoch):
         running_loss = 0.0
+        model.train()
 
-        for i, ((notes, _), (offsets, _), (durations, _)) in enumerate(zip(dataloader_notes, dataloader_offsets, dataloader_durations)):
-            notes = notes.to(device).float()
-            offsets = offsets.to(device).float()
-            durations = durations.to(device).float()
-
-            optimizer.zero_grad()
-
-            notes_output, offsets_output, durations_output = model(notes, offsets, durations)
-            notes_loss = criterion(notes_output.view(-1, notes_output.shape[2]), torch.flatten(torch.argmax(notes, dim=2)))
-            offsets_loss = criterion(offsets_output.view(-1, offsets_output.shape[2]), torch.flatten(torch.argmax(offsets, dim=2)))
-            durations_loss = criterion(durations_output.view(-1, durations_output.shape[2]), torch.flatten(torch.argmax(durations, dim=2)))
+        for (notes, _), (offsets, _), (durations, _) in zip(dataloader_notes, dataloader_offsets, dataloader_durations):
+            notes = notes.to(device)
+            offsets = offsets.to(device)
+            durations = durations.to(device)
+            notes_output, offsets_output, durations_output = model.forward(notes, offsets, durations)
+            
+            notes_loss = criterion(notes_output.view(-1, n_vocab_notes), notes.view(-1).long())
+            offsets_loss = criterion(offsets_output.view(-1, n_vocab_offsets), offsets.view(-1).long())
+            durations_loss = criterion(durations_output.view(-1, n_vocab_durations), durations.view(-1).long())
 
             loss = notes_loss + offsets_loss + durations_loss
+
+            optimizer.zero_grad()
             loss.backward()
             optimizer.step()
-
             running_loss += loss.item()
-        
-        print(f"Epoch {epoch+1} Loss: {running_loss / len(dataloader_notes)}")
+
+        print(f"Epoch {epoch} Loss: {running_loss / len(dataloader_notes)}")
         model_path = f'model-{epoch}.pt'
-    torch.save(model.state_dict(), model_path)
+        torch.save(model.state_dict(), model_path)
         
-def train_network():
+def train_network(epoch,preprocess):
     """ Train a Neural Network to generate music """
-    notes, offsets, durations = get_notes()
+    notes, offsets, durations = get_notes(preprocess)
 
     n_vocab_notes = len(set(notes))
     n_vocab_offsets = len(set(offsets))
     n_vocab_durations = len(set(durations))
-
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     dataset_notes = MusicDataset(notes, n_vocab_notes)
     dataset_offsets = MusicDataset(offsets, n_vocab_offsets)
@@ -180,9 +207,9 @@ def train_network():
     dataloader_durations = DataLoader(dataset_durations, batch_size=64, shuffle=True)
 
     model = create_network(n_vocab_notes, n_vocab_offsets, n_vocab_durations)
-    model.to(device)
-
-    train(model, dataloader_notes, dataloader_offsets, dataloader_durations)
+    train(model,epoch, dataloader_notes, dataloader_offsets, dataloader_durations, n_vocab_notes, n_vocab_offsets, n_vocab_durations)
 
 if __name__ == '__main__':
-    train_network()
+    config = get_argument()
+    epoch,preprocess = config['epoch'],config['get_note']
+    train_network(epoch,preprocess)
