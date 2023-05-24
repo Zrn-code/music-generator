@@ -24,15 +24,18 @@ def train(model,epoch, dataloader_notes, dataloader_offsets, dataloader_duration
         running_loss = 0.0
         model.train()
 
-        for (notes, _), (offsets, _), (durations, _) in zip(dataloader_notes, dataloader_offsets, dataloader_durations):
+        for (notes, notes_output), (offsets, offsets_output), (durations, durations_output) in zip(dataloader_notes, dataloader_offsets, dataloader_durations):
             notes = notes.to(device)
             offsets = offsets.to(device)
             durations = durations.to(device)
-            notes_output, offsets_output, durations_output = model.forward(notes, offsets, durations)
-            
-            notes_loss = criterion(notes_output.view(-1, n_vocab_notes), notes.view(-1).long())
-            offsets_loss = criterion(offsets_output.view(-1, n_vocab_offsets), offsets.view(-1).long())
-            durations_loss = criterion(durations_output.view(-1, n_vocab_durations), durations.view(-1).long())
+            notes_output = notes_output.squeeze(dim=1).to(device)  # 移除多餘的維度
+            offsets_output = offsets_output.squeeze(dim=1).to(device)  # 移除多餘的維度
+            durations_output = durations_output.squeeze(dim=1).to(device)  # 移除多餘的維度
+            notes_batch_output, offsets_batch_output, durations_batch_output = model.forward(notes, offsets, durations)
+            #print(notes_output.shape,offsets_output.shape,durations_output.shape)
+            notes_loss = criterion(notes_batch_output,notes_output)
+            offsets_loss = criterion(offsets_batch_output,offsets_output)
+            durations_loss = criterion(durations_batch_output,durations_output)
 
             loss = notes_loss + offsets_loss + durations_loss
 
@@ -42,7 +45,7 @@ def train(model,epoch, dataloader_notes, dataloader_offsets, dataloader_duration
             running_loss += loss.item()
 
         print(f"Epoch {epoch} Loss: {running_loss / len(dataloader_notes)}")
-        model_path = f'model-{epoch}.pt'
+        model_path = f'../checkpoints/model-{epoch}.pt'
         torch.save(model.state_dict(), model_path)
         
 def train_network(epoch,preprocess):

@@ -9,7 +9,7 @@ def get_notes(preprocess):
     durations = []
     if preprocess == 1:
         print("Start preprocessing")
-        for file in glob.glob("classical-piano-type0/*.mid"):
+        for file in glob.glob("../classical-piano-type0/*.mid"):
             midi = converter.parse(file)
 
             print("Parsing %s" % file)

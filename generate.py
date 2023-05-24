@@ -82,29 +82,29 @@ class MusicDataset(Dataset):
         network_output = torch.tensor(network_output).long()
         network_output = network_output.unsqueeze(1)
         network_output = nn.functional.one_hot(network_output, num_classes=n_vocab).float()
-
         return network_input, network_output
 def prepare_sequences(notes, pitchnames, n_vocab):
-	""" Prepare the sequences used by the Neural Network """
-	# map between notes and integers and back
-	note_to_int = dict((note, number) for number, note in enumerate(pitchnames))
+    """ Prepare the sequences used by the Neural Network """
+    # map between notes and integers and back
+    note_to_int = dict((note, number) for number, note in enumerate(pitchnames))
 
-	sequence_length = 100
-	network_input = []
-	output = []
-	for i in range(0, len(notes) - sequence_length, 1):
-		sequence_in = notes[i:i + sequence_length]
-		sequence_out = notes[i + sequence_length]
-		network_input.append([note_to_int[char] for char in sequence_in])
-		output.append(note_to_int[sequence_out])
+    sequence_length = 100
+    network_input = []
+    output = []
+    for i in range(0, len(notes) - sequence_length, 1):
+        sequence_in = notes[i:i + sequence_length]
+        sequence_out = notes[i + sequence_length]
+        network_input.append([note_to_int[char] for char in sequence_in])
+        output.append(note_to_int[sequence_out])
 
-	n_patterns = len(network_input)
- # reshape the input into a format compatible with LSTM layers
-	normalized_input = np.reshape(network_input, (n_patterns, sequence_length, 1))
-	# normalize input
-	normalized_input = normalized_input / float(n_vocab)
-	print(normalized_input.shape)
-	return (network_input, normalized_input)
+    n_patterns = len(network_input)
+    # reshape the input into a format compatible with LSTM layers
+    normalized_input = np.reshape(network_input, (n_patterns, sequence_length, 1))
+    # normalize input
+    normalized_input = normalized_input / float(n_vocab)
+    #aprint(network_input.shape)
+    print(normalized_input.shape)
+    return (network_input, normalized_input)
 
 
 class CombinedModel(nn.Module):
@@ -151,6 +151,7 @@ def create_network(n_vocab_notes, n_vocab_offsets, n_vocab_durations):
 
 def generate_notes(model, network_input_notes, network_input_offsets, network_input_durations, notenames, offsetnames, durationames, n_vocab_notes, n_vocab_offsets, n_vocab_durations):
     """ Generate notes from the neural network based on a sequence of notes """
+    #print(np.network_input_notes.shape)
     start = torch.randint(0, len(network_input_notes)-1, (1,))
     start2 = torch.randint(0, len(network_input_offsets)-1, (1,))
     start3 = torch.randint(0, len(network_input_durations)-1, (1,))

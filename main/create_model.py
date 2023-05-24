@@ -18,14 +18,14 @@ class CombinedModel(nn.Module):
 class MusicModel(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super(MusicModel, self).__init__()
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers=2, batch_first=True)
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers=1, batch_first=True)
         self.dropout = nn.Dropout(0.2)
         self.linear = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
         out, _ = self.lstm(x)
         out = self.dropout(out)
-        out = self.linear(out) 
+        out = self.linear(out[:, -1, :]) 
         return out
 
 class MusicDataset(Dataset):
@@ -60,20 +60,20 @@ class MusicDataset(Dataset):
         network_output = torch.tensor(network_output).long()
         network_output = network_output.unsqueeze(1)
         network_output = nn.functional.one_hot(network_output, num_classes=n_vocab).float()
-
+        print("network_input.shape")
+        print(network_input.shape)
+        print("network_output.shape")
+        print(network_output.shape)
         return network_input, network_output
 
 
 def create_network(n_vocab_notes, n_vocab_offsets, n_vocab_durations):
     input_size = 1
     hidden_size = 256
-    output_size_notes = n_vocab_notes
-    output_size_offsets = n_vocab_offsets
-    output_size_durations = n_vocab_durations
 
-    model_notes = MusicModel(input_size, hidden_size, output_size_notes)
-    model_offsets = MusicModel(input_size, hidden_size, output_size_offsets)
-    model_durations = MusicModel(input_size, hidden_size, output_size_durations)
+    model_notes = MusicModel(input_size, hidden_size, n_vocab_notes)
+    model_offsets = MusicModel(input_size, hidden_size, n_vocab_offsets)
+    model_durations = MusicModel(input_size, hidden_size, n_vocab_durations)
 
     model = CombinedModel(model_notes, model_offsets, model_durations)
     #model.load_state_dict(torch.load(f'model-{epoch-1}.pt'))
