@@ -1,6 +1,20 @@
 import pickle
+import os
 import glob
 from music21 import converter, instrument, note, chord
+
+# 組合檔案的相對路徑
+notes_path = './data/notes'
+durations_path = './data/durations'
+offsets_path = './data/offsets'
+
+# 確定程式碼的相對位置
+script_directory = os.path.dirname(os.path.abspath(__file__))
+
+# 組合程式碼的相對路徑和檔案的相對路徑
+notes_file_path = os.path.join(script_directory, notes_path)
+durations_file_path = os.path.join(script_directory, durations_path)
+offsets_file_path = os.path.join(script_directory, offsets_path)
 
 def get_notes(preprocess):
     """ Get all the notes and chords from the midi files in the ./midi_songs directory """
@@ -39,24 +53,26 @@ def get_notes(preprocess):
                     isNoteOrChord = False
                     offsetBase = element.offset
 
-        with open('data/notes', 'wb') as filepath:
+        with open(notes_file_path, 'wb') as filepath:
             pickle.dump(notes, filepath)
 
-        with open('data/durations', 'wb') as filepath:
+        with open(durations_file_path, 'wb') as filepath:
             pickle.dump(durations, filepath)
 
-        with open('data/offsets', 'wb') as filepath:
+        with open(offsets_file_path, 'wb') as filepath:
             pickle.dump(offsets, filepath)
         #print(durations)
         return notes, offsets, durations
     else:
-        with open('data/notes', 'rb') as filepath:
+        print("Loading preprocessed data")
+        with open(notes_file_path, 'rb') as filepath:
             notes = pickle.load(filepath)
 
-        with open('data/durations', 'rb') as filepath:
+        with open(durations_file_path, 'rb') as filepath:
             durations = pickle.load(filepath)
 
-        with open('data/offsets', 'rb') as filepath:
+        with open(offsets_path, 'rb') as filepath:
             offsets = pickle.load(filepath)
         #print(durations)
+        print("Preprocessed data loaded")
         return notes, offsets, durations

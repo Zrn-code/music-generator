@@ -5,32 +5,9 @@ from get_note import get_notes
 from create_model import create_network, MusicDataset
 import numpy as np
 import fractions
+import argparse
 
-def generate():
-    """ Generate a piano midi file """
-    # load the notes used to train the model
-    notes, offsets, durations = get_notes(0)
-    n_vocab_notes = len(set(notes))
-    n_vocab_offsets = len(set(offsets))
-    n_vocab_durations = len(set(durations))
-    dataset_notes = MusicDataset(notes, n_vocab_notes)
-    dataset_offsets = MusicDataset(offsets, n_vocab_offsets)
-    dataset_durations = MusicDataset(durations, n_vocab_durations)
-    
-    model = create_network(n_vocab_notes, n_vocab_offsets, n_vocab_durations)
-    model.load_state_dict(torch.load('model-40.pt'))  # Load the trained model weights
-
-    network_input_notes = dataset_notes.network_input
-    network_input_offsets = dataset_offsets.network_input
-    network_input_durations = dataset_durations.network_input
-    notenames = dataset_notes.pitchnames
-    offsetnames = dataset_offsets.pitchnames
-    durationames = dataset_durations.pitchnames
-    
-    prediction_output = generate_notes(model, network_input_notes, network_input_offsets, network_input_durations, notenames, offsetnames, durationames, n_vocab_notes, n_vocab_offsets, n_vocab_durations)
-    create_midi(prediction_output)
-
-def generate_notes(model, network_input_notes, network_input_offsets, network_input_durations, notenames, offsetnames, durationames, n_vocab_notes, n_vocab_offsets, n_vocab_durations):
+def generate_notes(model, network_input_notes, network_input_offsets, network_input_durations, notenames, offsetnames, durationames, n_vocab_notes, n_vocab_offsets, n_vocab_durations,length):
     """ Generate notes from the neural network based on a sequence of notes """
     # pick a random sequence from the input as a starting point for the prediction
     start = np.random.randint(0, len(network_input_notes) - 1)
@@ -48,7 +25,7 @@ def generate_notes(model, network_input_notes, network_input_offsets, network_in
     prediction_output = []
 
     # generate notes or chords
-    for note_index in range(300):
+    for note_index in range(length):
         note_prediction_input = pattern.unsqueeze(0)
         note_prediction_input = note_prediction_input / float(n_vocab_notes)
 
@@ -95,7 +72,7 @@ def generate_notes(model, network_input_notes, network_input_offsets, network_in
     print("Unknown count: " + str(unknown_count))
     return prediction_output
 
-def create_midi(prediction_output_all):
+def create_midi(prediction_output_all,mid_name):
     """ Convert the output from the prediction to notes and create a MIDI file from the notes """
     offset = 0
     output_notes = []
@@ -138,8 +115,48 @@ def create_midi(prediction_output_all):
         offset += 0.5
 
     midi_stream = stream.Stream(output_notes)
-    midi_stream.write('midi', fp='test_output.mid')
+    output_path = "../output/"
+    output_path += mid_name
+    midi_stream.write('midi', fp=output_path)
     print("MIDI created!")
 
+def generate(model_name,length,mid_name):
+    """ Generate a piano midi file """
+    # load the notes used to train the model
+    notes, offsets, durations = get_notes(0)
+    n_vocab_notes = len(set(notes))
+    n_vocab_offsets = len(set(offsets))
+    n_vocab_durations = len(set(durations))
+    dataset_notes = MusicDataset(notes, n_vocab_notes)
+    dataset_offsets = MusicDataset(offsets, n_vocab_offsets)
+    dataset_durations = MusicDataset(durations, n_vocab_durations)
+    
+    model = create_network(n_vocab_notes, n_vocab_offsets, n_vocab_durations)
+    path  = '../checkpoints/'
+    path += model_name
+    model.load_state_dict(torch.load(path))  # Load the trained model weights
+
+    network_input_notes = dataset_notes.network_input
+    network_input_offsets = dataset_offsets.network_input
+    network_input_durations = dataset_durations.network_input
+    notenames = dataset_notes.pitchnames
+    offsetnames = dataset_offsets.pitchnames
+    durationames = dataset_durations.pitchnames
+    
+    prediction_output = generate_notes(model, network_input_notes, network_input_offsets, network_input_durations, notenames, offsetnames, durationames, n_vocab_notes, n_vocab_offsets, n_vocab_durations,length)
+    create_midi(prediction_output,mid_name)
+
 if __name__ == '__main__':
-    generate()
+    # 創建解析器對象
+    parser = argparse.ArgumentParser()
+
+    # 添加命令行參數及其縮寫
+    parser.add_argument('-m', '--model_name', type=str, default='model-10.pt', help='設定模型名稱')
+    parser.add_argument('-l', '--length', type=int, default=400, help='設定生成的長度')
+    parser.add_argument('-n', '--mid_name', type=str, default='output.mid', help='設定生成的中間文件名稱')
+
+    # 解析命令行參數
+    args = parser.parse_args()
+
+    # 調用 generate 函數，並將解析後的參數傳入
+    generate(args.model_name, args.length, args.mid_name)

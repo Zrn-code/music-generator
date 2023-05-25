@@ -18,7 +18,7 @@ class CombinedModel(nn.Module):
 class MusicModel(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super(MusicModel, self).__init__()
-        self.lstm = nn.LSTM(input_size, hidden_size, num_layers=1, batch_first=True)
+        self.lstm = nn.LSTM(input_size, hidden_size, num_layers=2, batch_first=True)
         self.dropout = nn.Dropout(0.2)
         self.linear = nn.Linear(hidden_size, output_size)
 
@@ -60,10 +60,10 @@ class MusicDataset(Dataset):
         network_output = torch.tensor(network_output).long()
         network_output = network_output.unsqueeze(1)
         network_output = nn.functional.one_hot(network_output, num_classes=n_vocab).float()
-        print("network_input.shape")
-        print(network_input.shape)
-        print("network_output.shape")
-        print(network_output.shape)
+        #print("network_input.shape")
+        #print(network_input.shape)
+        #print("network_output.shape")
+        #print(network_output.shape)
         return network_input, network_output
 
 
