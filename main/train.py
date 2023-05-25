@@ -6,6 +6,8 @@ from torch.utils.data import DataLoader
 import argparse
 from get_note import get_notes
 from create_model import MusicDataset,create_network
+import os
+script_directory = os.path.dirname(os.path.abspath(__file__))
 
 def train(model,epoch, dataloader_notes, dataloader_offsets, dataloader_durations,save_times):
     """ train the neural network """
@@ -41,7 +43,7 @@ def train(model,epoch, dataloader_notes, dataloader_offsets, dataloader_duration
 
         print(f"Epoch {epoch+1} Loss: {running_loss / len(dataloader_notes)}")
         if (epoch+1) % save_times == 0:
-            model_path = f'../checkpoints/model-{epoch+1}.pt'
+            model_path = os.path.join(script_directory, f'../checkpoints/model-{epoch+1}.pt')
             torch.save(model.state_dict(), model_path)
             print(f"Checkpoint saved to {model_path}")
 def train_network(epoch,batch,preprocess,save_times):
