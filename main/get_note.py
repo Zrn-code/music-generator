@@ -23,7 +23,7 @@ def get_notes(preprocess):
     durations = []
     if preprocess == 1:
         print("Start preprocessing")
-        for file in glob.glob("../classical-piano-type0/*.mid"):
+        for file in glob.glob(os.path.join(script_directory, "../classical-piano-type0/*.mid")):
             midi = converter.parse(file)
 
             print("Parsing %s" % file)
@@ -67,12 +67,11 @@ def get_notes(preprocess):
         print("Loading preprocessed data")
         with open(notes_file_path, 'rb') as filepath:
             notes = pickle.load(filepath)
-
+        #print(notes)
         with open(durations_file_path, 'rb') as filepath:
             durations = pickle.load(filepath)
-
-        with open(offsets_path, 'rb') as filepath:
+        #print(offsets_path)
+        with open(offsets_file_path, 'rb') as filepath:
             offsets = pickle.load(filepath)
-        #print(durations)
         print("Preprocessed data loaded")
         return notes, offsets, durations

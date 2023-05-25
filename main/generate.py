@@ -6,6 +6,8 @@ from create_model import create_network, MusicDataset
 import numpy as np
 import fractions
 import argparse
+import os
+script_directory = os.path.dirname(os.path.abspath(__file__))
 
 def generate_notes(model, network_input_notes, network_input_offsets, network_input_durations, notenames, offsetnames, durationames, n_vocab_notes, n_vocab_offsets, n_vocab_durations,length):
     """ Generate notes from the neural network based on a sequence of notes """
@@ -115,7 +117,7 @@ def create_midi(prediction_output_all,mid_name):
         offset += 0.5
 
     midi_stream = stream.Stream(output_notes)
-    output_path = "../output/"
+    output_path = os.path.join(script_directory, "../output/")
     output_path += mid_name
     midi_stream.write('midi', fp=output_path)
     print("MIDI created!")
@@ -132,7 +134,7 @@ def generate(model_name,length,mid_name):
     dataset_durations = MusicDataset(durations, n_vocab_durations)
     
     model = create_network(n_vocab_notes, n_vocab_offsets, n_vocab_durations)
-    path  = '../checkpoints/'
+    path  = os.path.join(script_directory,'../checkpoints/')
     path += model_name
     model.load_state_dict(torch.load(path))  # Load the trained model weights
 
