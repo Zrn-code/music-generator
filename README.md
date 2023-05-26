@@ -28,15 +28,15 @@ Our model consists of three separate parts, each dedicated to training notes, of
 
 1. Move your directory to 'main' folder.
 2. Start to train model with the command "python train.py" to evoke train.py.
-> Use -e to set the number of epochs.(default is 50)
-Use -b to set the batch size.(default is 512)
-Use -p to decide weather to do the preprocess.(default is 1, do preprocess)
+> Use -e to set the number of epochs.(default is 50)  
+Use -b to set the batch size.(default is 512)  
+Use -p to decide weather to do the preprocess.(default is 1, do preprocess)  
 Use -st to decide how often to save the model.(default is 10, to save the model every 10 epochs)
 
 3. After training, you will get several model in 'checkpoint' folder.
 4. Run generate.py with
-> -m --'model_name' to choose which model you want to use for generating music.
--l to decide the length of music.
+> -m --'model_name' to choose which model you want to use for generating music.  
+-l to decide the length of music.  
 -n to set the file name of your output file
 
 5. Then you will get your midi file in 'output' folder.
