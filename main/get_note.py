@@ -16,14 +16,17 @@ notes_file_path = os.path.join(script_directory, notes_path)
 durations_file_path = os.path.join(script_directory, durations_path)
 offsets_file_path = os.path.join(script_directory, offsets_path)
 
-def get_notes(preprocess):
+def get_notes(preprocess,dataset = "classical-piano-type0"):
     """ Get all the notes and chords from the midi files in the ./midi_songs directory """
     notes = []
     offsets = []
     durations = []
     if preprocess == 1:
         print("Start preprocessing")
-        for file in glob.glob(os.path.join(script_directory, "../classical-piano-type0/*.mid")):
+        dataset = "../dataset/" + dataset + "/*.mid"
+        dataset_path = os.path.join(script_directory, dataset)
+        
+        for file in glob.glob(dataset_path):
             midi = converter.parse(file)
 
             print("Parsing %s" % file)

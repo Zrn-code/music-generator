@@ -153,10 +153,10 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     # 添加命令行參數及其縮寫
-    parser.add_argument('-m', '--model_name', type=str, default='model-10.pt', help='設定模型名稱')
-    parser.add_argument('-l', '--length', type=int, default=400, help='設定生成的長度')
+    parser.add_argument('-m', '--model_name', type=str, default='pretrained_model.pt', help='設定模型名稱')
+    parser.add_argument('-l', '--length', type=int, default=300, help='設定生成的長度')
     parser.add_argument('-n', '--mid_name', type=str, default='output.mid', help='設定生成的中間文件名稱')
-
+    
     # 解析命令行參數
     args = parser.parse_args()
 
