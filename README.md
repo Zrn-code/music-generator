@@ -15,29 +15,35 @@ We use the same datasets as the project ['Keras-LSTM-Music-Generator'](https://g
 ## Preprocess
 
 1. Use music21.converter.parse() to change each music in our datasets to 'music21.stream.Stream' objects.
-2. Check weather the file has instrument parts or not. If so, partitions the stream by instrument and retrieves the notes. Otherwise, directly retrieves the notes using midi.flat.notes.
-3. For each note or chord element in the parsed MIDI data, append the corresponding representation (pitch or normal order of chord notes) to the notes list.
-4. Calculates and appends the offset (difference from the previous note) and the duration of the element to the offsets and durations lists, respectively. 
+2. Check whether the file has instrument parts or not. If so, use the 'partitionByInstrument' function to partition the stream by instrument and retrieves the notes. Otherwise, directly retrieves the notes using midi.flat.notes.
+3. Use the 'isinstance' function to check the type of the element that we are going to parse
+>If it is note object, then converting the pitch of the note to a string and append it to 'notes' list.  
+If it is chord object, then converting the normal order of the chord's to a string and appended it to the 'notes' list.
+
+
+4. Calculates the difference of the element's offset with offsetBase, convert it to string, and append it to the 'offsets' list.
+5. Get the element's duration with 'element.duration.quarterLength', convert it to string and appent it to the 'duration' list.
 
 ## Model
 
 Our model consists of three separate parts, each dedicated to training notes, offsets, and durations. Each part follows the same architecture, consisting of an LSTM layer, a dropout layer, and a linear layer. Below is our model dlagram.
 ![LSTM Model Diagram](model.png)
 
-## How to Training
+## How to Train and Generate Music
 
 1. Move your directory to 'main' folder.
 2. Start to train model with the command "python train.py" to evoke train.py.
-> Use -e to set the number of epochs.(default is 50)  
-Use -b to set the batch size.(default is 512)  
-Use -p to decide weather to do the preprocess.(default is 1, do preprocess)  
-Use -st to decide how often to save the model.(default is 10, to save the model every 10 epochs)
+> -e to set the number of epochs.(default is 50)  
+-b to set the batch size.(default is 512)  
+-st to decide how often to save the model.(default is 10, to save the model every 10 epochs)  
+-p to decide whether to do the preprocess.(default is 1, do preprocess)  
+   (The preprocess is to parsed the dataset in the folder 'dataset')   
+If you choose to do the preprocess, you can use -d to set which folder of the data you want to parse in the folder 'dataset'(default is 'classical-piano-type0')
 
 3. After training, you will get several model in 'checkpoint' folder.
 4. Run generate.py with
-> -m --'model_name' to choose which model you want to use for generating music.  
--l to decide the length of music.  
--n to set the file name of your output file
+> -m to choose which model you want to use for generating music.(default is 'pretrained_model.pt')  
+-l to decide the length of music.(default is 300)  
+-n to set the file name of your output file(default is 'output.mid')
 
 5. Then you will get your midi file in 'output' folder.
-
