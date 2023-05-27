@@ -114,7 +114,7 @@ def create_midi(prediction_output_all,mid_name):
         
         offset_fraction = fractions.Fraction(offset_pattern)
         offset += float(offset_fraction)
-        offset += 0.5
+        
 
     midi_stream = stream.Stream(output_notes)
     output_path = os.path.join(script_directory, "../output/")
