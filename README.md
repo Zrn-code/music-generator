@@ -29,8 +29,15 @@ If it is chord object, then converting the normal order of the chord's to a stri
 Our model consists of three separate parts, each dedicated to training notes, offsets, and durations. Each part follows the same architecture, consisting of an LSTM layer, a dropout layer, and a linear layer. Below is our model dlagram.
 ![LSTM Model Diagram](model.png)
 
+## Pretrained Model
+
+We provide a pretrained model in the 'checkpoints' folder, which is trained by using default parameter. You can directly use it to generate music or follow the instruction below to train your own one.
+
 ## How to Train and Generate Music
 
+There are two way to train the data:
+
+First way:  
 1. Move your directory to 'main' folder.
 2. Start to train model with the command "python train.py" to evoke train.py.
 > -e to set the number of epochs.(default is 50)  
@@ -47,3 +54,16 @@ If you choose to do the preprocess, you can use -d to set which folder of the da
 -n to set the file name of your output file(default is 'output.mid')
 
 5. Then you will get your midi file in 'output' folder.
+
+Second way:  
+1. Run 'script.py'
+2. Following the instruction show on the screen:
+> type 1 to Train a neural network  
+>type 2 to Generate music with the model you train  
+>type 3 to end the program
+
+3. Continue follow the instructions displayed on the screen to complete the parameter setup, then the program will automatically start to work based on your commands.
+
+## Conclution
+
+Using this model, we can generate a series of musical notes and produce music of a certain level of quality. However, there is still a long way to go before generating truly wonderful songs. As a result, we would continuously work on inproving the model by adjusting parameter and try more complex model network in the future.
