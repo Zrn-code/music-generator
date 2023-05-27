@@ -1,6 +1,8 @@
+import sys
 import torch
 import torch.nn.functional as F
 from music21 import note, chord, instrument, stream
+sys.path.append("..")
 from main.get_note  import get_notes
 from main.create_model import create_network, MusicDataset
 import numpy as np
@@ -8,6 +10,7 @@ import fractions
 import argparse
 import os
 script_directory = os.path.dirname(os.path.abspath(__file__))
+
 
 def generate_notes(model, network_input_notes, network_input_offsets, network_input_durations, notenames, offsetnames, durationames, n_vocab_notes, n_vocab_offsets, n_vocab_durations,length):
     """ Generate notes from the neural network based on a sequence of notes """
