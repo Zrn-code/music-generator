@@ -4,6 +4,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import argparse
+import sys
+sys.path.append("..")
 from main.get_note import get_notes
 from main.create_model import MusicDataset,create_network
 import os
