@@ -1,8 +1,8 @@
 import torch
 import torch.nn.functional as F
 from music21 import note, chord, instrument, stream
-from get_note import get_notes
-from create_model import create_network, MusicDataset
+from main.get_note  import get_notes
+from main.create_model import create_network, MusicDataset
 import numpy as np
 import fractions
 import argparse
@@ -17,7 +17,7 @@ def generate_notes(model, network_input_notes, network_input_offsets, network_in
     start3 = np.random.randint(0, len(network_input_durations) - 1)
 
     int_to_note = dict((number, note) for number, note in enumerate(notenames))
-    print(int_to_note)
+    #print(int_to_note)
     int_to_offset = dict((number, note) for number, note in enumerate(offsetnames))
     int_to_duration = dict((number, note) for number, note in enumerate(durationames))
 

@@ -4,8 +4,8 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import argparse
-from get_note import get_notes
-from create_model import MusicDataset,create_network
+from main.get_note import get_notes
+from main.create_model import MusicDataset,create_network
 import os
 script_directory = os.path.dirname(os.path.abspath(__file__))
 
