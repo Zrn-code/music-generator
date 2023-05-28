@@ -4,7 +4,7 @@ This project is trying to generate music with pytorch tools.
 
 ## Introduction
 
-Beautiful music has the power to cultivate our emotions. However, finding pleasing compositions is a rarity that only few genius are able to do. Hence, with the advancement of AI technology today, we would like to utilize machine learning to adding captivating melodies to the world.
+Beautiful music has the power to cultivate our emotions. However, finding pleasing compositions is a rarity that only few geniuses are able to do. Hence, with the advancement of AI technology today, we would like to utilize machine learning to adding captivating melodies to the world.
 
 We refer to ['Keras-LSTM-Music-Generator'](https://github.com/jordan-bird/Keras-LSTM-Music-Generator) - which has already developed an impressive model using Keras and TensorFlow. However, as TensorFlow compatibility with modern GPUs has become limited, we aim to build a new model using PyTorch and strive to design an improved system that enhances the quality of music generation.
 
@@ -35,7 +35,7 @@ We provide a pretrained model in the 'checkpoints' folder, which is trained by u
 
 ## How to Train and Generate Music
 
-There are two way to train the data:
+There are two ways to train the data:
 
 First way:  
 1. Move your directory to 'main' folder.
@@ -47,7 +47,7 @@ First way:
    (The preprocess is to parsed the dataset in the folder 'dataset')   
 If you choose to do the preprocess, you can use -d to set which folder of the data you want to parse in the folder 'dataset'(default is 'classical-piano-type0')
 
-3. After training, you will get several model in 'checkpoint' folder.
+3. After training, you will get several models in 'checkpoint' folder.
 4. Run generate.py with
 > -m to choose which model you want to use for generating music.(default is 'pretrained_model.pt')  
 -l to decide the length of music.(default is 300)  
@@ -64,6 +64,6 @@ Second way:
 
 3. Continue follow the instructions displayed on the screen to complete the parameter setup, then the program will automatically start to work based on your commands.
 
-## Conclution
+## Conclusion
 
-Using this model, we can generate a series of musical notes and produce music of a certain level of quality. However, there is still a long way to go before generating truly wonderful songs. As a result, we would continuously work on inproving the model by adjusting parameter and try more complex model network in the future.
+Using this model, we can generate a series of musical notes and produce music of a certain level of quality. However, there is still a long way to go before generating truly wonderful songs. As a result, we would continuously work on improving the model by adjusting parameter and try more complex model network in the future.
