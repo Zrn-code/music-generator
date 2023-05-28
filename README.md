@@ -23,6 +23,13 @@ If it is chord object, then converting the normal order of the chord's to a stri
 
 4. Calculates the difference of the element's offset with offsetBase, convert it to string, and append it to the 'offsets' list.
 5. Get the element's duration with 'element.duration.quarterLength', convert it to string and appent it to the 'duration' list.
+6.	Use the class MusicDataset we defined to convert three list we get above (notes, offsets, duration) to the correct dimension of pytorch tensor we need to feed into model. The following are the thorough steps in MusicDataset:
+>a. Set the sequence length to 100, which means we want to use every 100 notes to predict the output.  
+b.	Sort the set in the list and map them into a dictionary ‘notes_to_int’ with serial number.  
+c.	Traverse the notes list, each time in loop take first 100 element and use the dictionary ‘notes_to_int’ to convert them to integer. Then, append them to ‘network_input’. Use the same method to append the 101st element to ‘network_output’  
+d.	Convert ‘network_input’ to pytorch tensor, which dimension is (the length of itself (number of patterns), sequence length, 1)  
+e.	Convert ‘network_output’ to pytorch tensor, which dimension is (the length of itself (number of patterns), 1, length of original notes)  
+f.	Return ‘network_input’ and ‘network_output’. 
 
 ## Model
 
