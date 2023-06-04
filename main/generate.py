@@ -28,9 +28,9 @@ def generate_notes(model, network_input_notes, network_input_offsets, network_in
     pattern2 = torch.tensor(network_input_offsets[start2])
     pattern3 = torch.tensor(network_input_durations[start3])
     prediction_output = []
-
+    offsets = 0
     # generate notes or chords
-    for note_index in range(length):
+    while offsets < length:
         note_prediction_input = pattern.unsqueeze(0)
         note_prediction_input = note_prediction_input / float(n_vocab_notes)
 
@@ -65,7 +65,8 @@ def generate_notes(model, network_input_notes, network_input_offsets, network_in
             continue
         
         print("Next note: " + str(result) + " - Duration: " + str(duration_result) + " - Offset: " + str(offset_result))
-
+        offset_fraction = fractions.Fraction(offset_result)
+        offsets += float(offset_fraction)
         prediction_output.append([result, offset_result, duration_result])
 
         pattern = torch.cat((pattern, torch.tensor([index]).reshape((1, 1))))
